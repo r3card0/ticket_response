@@ -10,7 +10,7 @@ from config import config
 
 def description():
     program_description = """
-    This program calculates the total kms of links
+    This program calculates the total kms of roads
     non navegables and navegables from a country
     """
     return program_description
@@ -38,9 +38,9 @@ zone = choose_zone()
 def sql_statement():
     try:
         countries =f"""
-        SELECT DISTINCT admin_l1_display_name as country
-        , admin_l1_rmob_id
-        FROM admin_active_ws_{zone}_bw_2201
+        SELECT DISTINCT country
+        , country_id
+        FROM country_table_{zone}
         ORDER BY 1
         """
         return countries 
@@ -65,12 +65,12 @@ country_id = select_country()
 def sql_statement():
     try:
         select =f"""
-        SELECT distinct a.admin_l1_display_name as country
-        , sum((SELECT sum(l.link_length_meters / 1000) FROM link_active_ws_{zone}_bw_2201 l WHERE l.is_navigable=true AND a.admin_rmob_id = l.left_admin_rmob_id AND l.view_start_date between '2022-01-01' AND '2022-08-31')) as km_nav
-        , sum((SELECT sum(l.link_length_meters / 1000) FROM link_active_ws_{zone}_bw_2201 l WHERE l.is_navigable=false AND a.admin_rmob_id = l.left_admin_rmob_id AND l.view_start_date between '2022-01-01' AND '2022-08-31')) as km_not_nav
-        FROM admin_active_ws_{zone}_bw_2201 a 
-        WHERE admin_l1_rmob_id = {country_id} -- Country
-        GROUP BY a.admin_l1_display_name
+        SELECT distinct country
+        , sum((SELECT sum(meters / 1000) FROM road_{zone} WHERE road_nav=1 ')) as km_nav
+        , sum((SELECT sum(meters / 1000) FROM road_{zone} WHERE road_nav=0 ')) as km_not_nav
+        FROM table_{zone}
+        WHERE country_id = {country_id} -- Country
+        GROUP BY country
         ORDER BY 1
         """
         return select 
